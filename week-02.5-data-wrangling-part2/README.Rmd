@@ -63,7 +63,7 @@ Science](https://r4ds.had.co.nz/transform.html)
 
 4.  **`mutate()`**
 
-    4.1 Create a flag for flights that were delayed using `mutate()`
+    4.1 Create a flag for flights that departure was delayed using `mutate()` and `if_else()`.
 
     4.2 Calculate the speed of each plane in mph using `mutate()`.
 
@@ -110,4 +110,11 @@ Science](https://r4ds.had.co.nz/transform.html)
 
     6.3 Read section on joins R for Data science section
     <https://r4ds.had.co.nz/relational-data.html?q=joins#understanding-joins>
-    and try and answer the exercises
+    and try and answer the exercises.
+    
+7. **`pivot_wider() and pivot_longer()**
+
+    7.1 Read the [R for Data
+    Science section 12](https://r4ds.had.co.nz/tidy-data.html?q=pivot#tidy-data)
+    
+    We will cover "Tidy data" further in a later session.
