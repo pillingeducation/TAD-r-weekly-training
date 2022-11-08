@@ -28,15 +28,15 @@ Science](https://r4ds.had.co.nz/transform.html)
 
     Today we will aim cover and mainly focus on:
 
-    `select()`, `mutate()`,`group_by()`,`summarise()`,`count()`,
-    `if_else()`, and `case_when()`
+    `select()`,
+    `mutate()`,`group_by()`,`summarise()`,`count()`,`rename`if\_else()`, and`case\_when()\`
 
     If we have time / those who want can delve a bit deeper and look at
 
     `left_join()`, `pivot_wider()` and `pivot_longer()`
 
     We will answer the following questions using the **`nycflights13`**
-    data-set.
+    dataset.
 
 3.  **`select()`**
 
@@ -66,8 +66,7 @@ Science](https://r4ds.had.co.nz/transform.html)
 
     4.3 Long haul flight are defined as flights that took longer than
     seven hours. Create a flag for long haul flights. To answer this you
-    could use `if_else()`, several `mutate()` s or `case_when()` or
-    something else!
+    could use `if_else()`, `mutate()` , `case_when()` or something else!
 
     4.4 If you have finished these you can look at [R for Data
     Science](https://r4ds.had.co.nz/transform.html) 5.5.2 Exercises  
@@ -78,17 +77,17 @@ Science](https://r4ds.had.co.nz/transform.html)
     travel time to each airport.
 
     *(Optional join on the actual names of the data airports using
-    left\_join and the data-set `airports`)*
+    left\_join and the dataset `airports`)*
 
     5.2 Use either `group_by` and `summarise()` or `count()` to see how
-    many flights where delayed?
+    many flights were delayed in departure?
 
     5.3 Use either `group_by` and `summarise()` or `count()` to see how
     many flights where long haul?
 
-    5.4 Add a new column to the data set that says how many flights were
-    delayed for each airport? Which airport had the most delays in the
-    data-set?
+    5.4 Add a new column to the data set that says how many flights
+    departure was delayed for each airport? Which airport had the most
+    delays in departure the data-set?
 
     5.5 Which airline had the most flights depart from JFK? (Many ways
     to do this)
@@ -98,18 +97,19 @@ Science](https://r4ds.had.co.nz/transform.html)
 
 6.  **`left_join()`**
 
-    6.1 Create a table that shows how many delays each airline had the
-    least delays and make sure we have the full name for the airline.
+    6.1 Create a table that shows how many delays each airline had and
+    which had the least delays. Join data to make sure we have the full
+    name for the airline.
 
     6.2 Create a table that shows which airline had the most delays from
     an individual airport. We want the full name for both the airlines
     and the airports.
 
-    6.3 Read section on joins R for Data science section
-    <https://r4ds.had.co.nz/relational-data.html?q=joins#understanding-joins>
+    6.3 Read section on joins [R for Data science section
+    joins](https://r4ds.had.co.nz/relational-data.html?q=joins#understanding-joins)
     and try and answer the exercises.
 
-7.  **\`pivot\_wider() and pivot\_longer()**
+7.  **`pivot_wider()` and `pivot_longer()`**
 
     7.1 Read the [R for Data Science section
     12](https://r4ds.had.co.nz/tidy-data.html?q=pivot#tidy-data)
