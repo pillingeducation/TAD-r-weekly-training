@@ -1,225 +1,117 @@
 <!-- Please edit README.Rmd - not README.md -->
 
-# Week 02: Data Wrangling
+# Week 02.5: Data Wrangling Part 2
 
 This week we’ll be building on what was covered last week, using `tidyr`
-and `dplyr` to perform some more serious data wrangling, this time using
-some real-world educational data taken from
-[Ofsted](https://www.gov.uk/government/statistics/further-education-and-skills-inspections-and-outcomes-as-at-31-august-2021)
-and the [Apprenticeships Statistical First Release
-(SFR)](https://explore-education-statistics.service.gov.uk/find-statistics/apprenticeships-and-traineeships/2020-21#dataDownloads-1).
-All data used in these examples is the most recent available data as of
-December 2021.
+and `dplyr` to perform some more data wrangling, again using
+`nycflights13` data.
+
+Some of the exercises and examples are from [R for Data
+Science](https://r4ds.had.co.nz/transform.html)
 
 # Resources
 
--   [R for Data Science](https://r4ds.had.co.nz/transform.html):
-    -   See chapter 5 for adding columns with `mutate()`, removing rows
-        with `filter()` and aggregating with `group_by()` and
-        `summarise()`
-    -   See chapter 12 for ‘pivoting’, dealing with missing values and
-        columns which have multiple observations per cell
-    -   See chapter 13 for joins (this chapter is especially relevant!)
+-   See chapter 5 for adding columns with `mutate()` and aggregating
+    with `group_by()` and `summarise()`
+-   See chapter 12 for ‘pivoting’, dealing with missing values and
+    columns which have multiple observations per cell.
+-   See chapter 13 for joins.
 
 # Exercises
 
-1.  **Setup/Data import**
+1.  **Setup/Data import and library(s)**
 
-    Difficulty: Not too bad (hopefully)
+        library(nycflights13)
+        library(tidyverse)
 
-    The data for these exercises has been saved in this repo as three
-    tables: [course\_details.csv](course_details.csv),
-    [ofsted.csv](ofsted.csv), and [starts.csv](starts.csv). Load these
-    into R using the following steps:
+2.  **Content**
 
-    1.  Manually download the files from the repo
+    Today we will aim cover and mainly focus on:
 
-    2.  Save these as files in your local R project
+    `select()`, `mutate()`,`group_by()`,`summarise()`,`count()`,
+    `if_else()`, and `case_when()`
 
-    3.  Read the files into your R session using `readr::read_csv()`.
-        It’s probably a good idea to save these as objects named
-        `course_details`, `starts`, `ofsted` and `ofsted_scores`
+    If we have time / those who want can delve a bit deeper and look at
 
-        Your project folder should end up looking something like this:
+    `left_join()`, `pivot_wider()` and `pivot_longer()`
 
-        ![example project
-        structure](project-structure-example.jpg "example project structure")
+    We will answer the following questions using the **`nycflights13`**
+    data-set.
 
-        ..and your script should look something like this:
+3.  **`select()`**
 
-            # == 01. Load packages =========================================================
-            library(tidyverse)
+    3.1 Brainstorm as many ways as possible to select `dep_time`,
+    `dep_delay`, `arr_time`, and `arr_delay` from flights.
 
-            # == 02. Load data =============================================================
-            course_details <- read_csv("course_details.csv")
-            starts         <- read_csv("starts.csv")
-            ofsted         <- read_csv("ofsted.csv")
-            ofsted_scores  <- read_csv("ofsted_scores.csv")
+    3.2 What happens if you include the name of a variable multiple
+    times in a `select()` call?
 
-2.  **Basic wrangling**
+    3.3 What does the `any_of()` function do? Why might it be helpful in
+    conjunction with this vector?
 
-    Difficulty: Not too bad (hopefully)
+    `vars \<- c("year", "month", "day", "dep_delay", "arr_delay")`
 
-    Answer the following questions using the **`ofsted`** dataset.
+    3.4 Does the result of running the following code surprise you? How
+    do the select helpers deal with case by default? How can you change
+    that default?
 
-    1.  Using `count()`, verify that each provider has only one recorded
-        inspection in the data (otherwise we could get skewed results
-        later on).
+    `select(flights, contains("TIME"))`
 
-    2.  The UK Provider Reference Number (UKPRN) is a unique identifier
-        for education providers. Use this to see whether providers are
-        uniquely named in the `ofsted` dataset.
+4.  **`mutate()`**
 
-    3.  What proportion of providers are ‘Independent specialist
-        colleges’?
+    4.1 Create a flag for flights that departure was delayed using
+    `mutate()` and `if_else()`.
 
-    4.  Use `left_join()` to combine `ofsted` and `ofsted_scores`. What
-        percentage of providers have ineffective safeguarding according
-        to the data? Hint: look at `ofsted$inspection_number` and
-        `ofsted_scores$inspection_id`
+    4.2 Calculate the speed of each plane in mph using `mutate()`.
 
-    5.  `{lubridate}` is a package for working with dates. Using
-        functions from this package, convert the `inspection_date`
-        column to `date` format, and then create a new column giving the
-        day of the week on which the inspection occurred. Using this
-        column, find out if there is any pattern in how Ofsted chooses
-        the day of the week to run inspections. Does this change based
-        on inspection type?
+    4.3 Long haul flight are defined as flights that took longer than
+    seven hours. Create a flag for long haul flights. To answer this you
+    could use `if_else()`, several `mutate()` s or `case_when()` or
+    something else!
 
-3.  **More complex wrangling**
+    4.4 If you have finished these you can look at [R for Data
+    Science](https://r4ds.had.co.nz/transform.html) 5.5.2 Exercises  
 
-    Difficulty: Tricky
+5.  **`group_by()`**
 
-    1.  Using the `ofsted` and `ofsted_scores` datasets, work out which
-        provider group has the highest proportion of ‘outstanding’
-        scores for apprenticeships. Do this in a generalised way,
-        e.g. so that your output is a data.frame/tibble which also
-        includes proportions of ‘inadequate’ scores by provider group.
+    5.1 Use `group_by`, `summarise()` and `mean()` to calculate the mean
+    travel time to each airport.
 
-    2.  Create a lookup table using your answer to question 3.1. Your
-        output should look something like this (your figures should
-        **not** match these):
+    *(Optional join on the actual names of the data airports using
+    left\_join and the data-set `airports`)*
 
-        <table style="width:100%;">
-        <colgroup>
-        <col style="width: 53%" />
-        <col style="width: 10%" />
-        <col style="width: 8%" />
-        <col style="width: 18%" />
-        <col style="width: 9%" />
-        </colgroup>
-        <thead>
-        <tr class="header">
-        <th style="text-align: left;">provider_group</th>
-        <th style="text-align: right;">outstanding</th>
-        <th style="text-align: right;">good</th>
-        <th style="text-align: right;">requires_improvement</th>
-        <th style="text-align: right;">inadequate</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr class="odd">
-        <td style="text-align: left;">Independent learning providers (including
-        employer providers)</td>
-        <td style="text-align: right;">0.54</td>
-        <td style="text-align: right;">0.26</td>
-        <td style="text-align: right;">0.95</td>
-        <td style="text-align: right;">0.40</td>
-        </tr>
-        <tr class="even">
-        <td style="text-align: left;">Adult community education providers</td>
-        <td style="text-align: right;">0.52</td>
-        <td style="text-align: right;">0.76</td>
-        <td style="text-align: right;">0.83</td>
-        <td style="text-align: right;">NA</td>
-        </tr>
-        <tr class="odd">
-        <td style="text-align: left;">Colleges</td>
-        <td style="text-align: right;">0.25</td>
-        <td style="text-align: right;">0.80</td>
-        <td style="text-align: right;">0.88</td>
-        <td style="text-align: right;">0.39</td>
-        </tr>
-        <tr class="even">
-        <td style="text-align: left;">Higher education institutions</td>
-        <td style="text-align: right;">0.01</td>
-        <td style="text-align: right;">0.53</td>
-        <td style="text-align: right;">0.27</td>
-        <td style="text-align: right;">NA</td>
-        </tr>
-        <tr class="odd">
-        <td style="text-align: left;">Independent specialist colleges</td>
-        <td style="text-align: right;">NA</td>
-        <td style="text-align: right;">0.98</td>
-        <td style="text-align: right;">0.65</td>
-        <td style="text-align: right;">0.99</td>
-        </tr>
-        </tbody>
-        </table>
+    5.2 Use either `group_by` and `summarise()` or `count()` to see how
+    many flights where delayed?
 
-        Hint: `janitor::clean_names()` may come in handy here.
+    5.3 Use either `group_by` and `summarise()` or `count()` to see how
+    many flights where long haul?
 
-    3.  Using `starts`, `ofsted` and `ofsted_scores`, work out the total
-        number of apprenticeship starts associated with each ofsted
-        score for overall effectiveness.
+    5.4 Add a new column to the data set that says how many flights were
+    delayed for each airport? Which airport had the most delays in the
+    data-set?
 
-    4.  Similarly to 3.3, work out the total number of apprenticeships
-        starts associated with each ofsted score for apprenticeships.
-        Using this information with your results from 3.3, see if you
-        can draw any conclusions about how providers perform in
-        apprenticeships compared with how they perform overall.
+    5.5 Which airline had the most flights depart from JFK? (Many ways
+    to do this)
 
-4.  **A recursive problem**
+    5.6 If you have finished these you can look at [R for Data
+    Science](https://r4ds.had.co.nz/transform.html) 5.6.7 Exercises  
 
-    Difficulty: Challenging
+6.  **`left_join()`**
 
-    **Note**: These questions are intended to give you a real run for
-    your money. If you get frustrated and aren’t having fun, feel free
-    to abandon this question at any point - this is more tricky than
-    most stuff you’ll come across in real life! If you do want to give
-    them a try it’s at least recommended that you collaborate with
-    someone else. Remember to ‘make your code beautiful’ before you
-    submit :)
+    6.1 Create a table that shows how many delays each airline had the
+    least delays and make sure we have the full name for the airline.
 
-    1.  A provider may be at risk of closing if their overall
-        effectiveness is rated as ‘inadequate’. Create a dataset which
-        gives the percentage of starts which are at risk for each
-        combination of `delivery_region` and `std_fwk_flag`. Call the
-        additional column `risk_factor`.
+    6.2 Create a table that shows which airline had the most delays from
+    an individual airport. We want the full name for both the airlines
+    and the airports.
 
-    2.  Now, say that a provider is at risk of closing if they are rated
-        inadequate in any category, or if they have ineffective
-        safeguarding. Modify your solution to 4.1 to include a column
-        `risk_category` which gives the inspection category/categories
-        which the starts are at risk for.
+    6.3 Read section on joins R for Data science section
+    <https://r4ds.had.co.nz/relational-data.html?q=joins#understanding-joins>
+    and try and answer the exercises.
 
-    3.  Modify your answer to 4.2 to include several more ‘breakdown
-        columns’. These should be the following:
+7.  **\`pivot\_wider() and pivot\_longer()**
 
-            breakdowns <- c(
-             "risk_category", "delivery_region", "std_fwk_flag", "provider_type", 
-             "provider_group", "route", "apps_level"
-            )
+    7.1 Read the [R for Data Science section
+    12](https://r4ds.had.co.nz/tidy-data.html?q=pivot#tidy-data)
 
-    4.  Your dataset from 4.3 will include *implicit missing values*.
-        Use `tidyr::complete()` to make these explicit. (Hint: read [R
-        for Data Science chapter
-        12.5](https://r4ds.had.co.nz/tidy-data.html?q=complete#missing-values-3)
-        if you’re not sure what this is all about)
-
-    5.  Where there are missing values, we can attempt to fill these in
-        using a more a version of the dataset from 4.3 which is
-        generalised to include all `breakdowns` except `"apps_level"`.
-        Populate the missing values of `risk_factor` in your answer to
-        4.4. with the more general values. If there are still missing
-        values, repeat the process, this time using breakdowns except
-        `"apps_level"` **and** `"route"`, and so on until there are no
-        missing values remaining. Your output should include a column to
-        indicate how ‘general’ the values of `risk_factor` are.
-
-        (Application: this could be used as a method of modelling risk
-        for future starts which don’t have historic data.)
-
-    6.  Go back and ‘refactor’ your solution so that there is as little
-        repeating code as possible. Try writing functions to help with
-        this :)
+    We will cover “Tidy data” further in a later session.

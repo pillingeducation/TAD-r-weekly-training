@@ -40,7 +40,7 @@ Science](https://r4ds.had.co.nz/transform.html)
     `left_join()`, `pivot_wider()` and `pivot_longer()`
 
     We will answer the following questions using the **`nycflights13`**
-    data-set.
+    dataset.
 
 3.  **`select()`**
 
@@ -63,7 +63,8 @@ Science](https://r4ds.had.co.nz/transform.html)
 
 4.  **`mutate()`**
 
-    4.1 Create a flag for flights that departure was delayed using `mutate()` and `if_else()`.
+    4.1 Create a flag for flights that departure was delayed using
+    `mutate()` and `if_else()`.
 
     4.2 Calculate the speed of each plane in mph using `mutate()`.
 
@@ -81,7 +82,7 @@ Science](https://r4ds.had.co.nz/transform.html)
     travel time to each airport.
 
     *(Optional join on the actual names of the data airports using
-    left_join and the data-set `airports`)*
+    left_join and the dataset `airports`)*
 
     5.2 Use either `group_by` and `summarise()` or `count()` to see how
     many flights where delayed?
@@ -89,9 +90,9 @@ Science](https://r4ds.had.co.nz/transform.html)
     5.3 Use either `group_by` and `summarise()` or `count()` to see how
     many flights where long haul?
 
-    5.4 Add a new column to the data set that says how many flights were
+    5.4 Add a new column to the dataset that says how many flights were
     delayed for each airport? Which airport had the most delays in the
-    data-set?
+    dataset?
 
     5.5 Which airline had the most flights depart from JFK? (Many ways
     to do this)
@@ -108,13 +109,13 @@ Science](https://r4ds.had.co.nz/transform.html)
     an individual airport. We want the full name for both the airlines
     and the airports.
 
-    6.3 Read section on joins R for Data science section
-    <https://r4ds.had.co.nz/relational-data.html?q=joins#understanding-joins>
+    6.3 Read section on joins [R for Data science section
+    joins](https://r4ds.had.co.nz/relational-data.html?q=joins#understanding-joins)
     and try and answer the exercises.
-    
-7. **`pivot_wider() and pivot_longer()**
 
-    7.1 Read the [R for Data
-    Science section 12](https://r4ds.had.co.nz/tidy-data.html?q=pivot#tidy-data)
-    
+7.  **`pivot_wider()` and `pivot_longer()`**
+
+    7.1 Read the [R for Data Science section
+    12](https://r4ds.had.co.nz/tidy-data.html?q=pivot#tidy-data)
+
     We will cover "Tidy data" further in a later session.
