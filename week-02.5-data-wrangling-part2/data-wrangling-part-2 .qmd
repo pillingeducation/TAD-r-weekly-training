@@ -33,7 +33,7 @@ library(nycflights13)
 
 ```
 
-## `select()` {}
+## `select()`
 
 It's not uncommon to get datasets with hundreds or even thousands of
 variables. In this case, the first challenge is often narrowing in on
@@ -44,10 +44,12 @@ operations based on the names of the variables.
 
 . . .
 
-```{r} 
+```{r}
 flights %>% select(carrier,origin)
 ```
+
 . . .
+
 ```{r }
 flights %>% select(contains("dep"))
 ```
@@ -62,9 +64,9 @@ That's the job of `mutate()`.
 `mutate()` can be used with operations (\*, +, etc) and is often used
 with `if_else()` or `case_when()`
 
-`transmute()` - only keep the new mutated columns 
+`transmute()` - only keep the new mutated columns
 
-`rename()` - rename a column 
+`rename()` - rename a column
 
 . . .
 
@@ -99,7 +101,6 @@ flight_delay %>%
 
 ```
 
-
 . . .
 
 ```{r}
@@ -109,7 +110,6 @@ flights %>%
   transmute(air_time_delay = arr_delay - dep_delay)
 
 ```
-
 
 . . .
 
@@ -143,7 +143,6 @@ flights %>%
   summarise(delay = mean(dep_delay, na.rm = TRUE))
 
 ```
-
 
 . . .
 
@@ -195,7 +194,7 @@ data](https://r4ds.had.co.nz/relational-data.html?q=join#relational-data)
 
 I mainly use `left_join()`
 
-With `left_join()` you keep all variables in dataset `x` and join on 
+With `left_join()` you keep all variables in dataset `x` and join on
 those in though `y` that match to `x`.
 
 You can join on one or more columns.
@@ -208,7 +207,9 @@ flights %>%
   left_join(airlines, by = "carrier") %>%
   select(name,everything())
 ```
+
 . . .
+
 ```{r }
 flights %>%
   left_join(airports %>% 
