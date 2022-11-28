@@ -1,0 +1,29 @@
+default:
+  tad_ecf_sql:
+    driver: "SQL Server Native Client 11.0"
+    server: "3DCPRI-PDB16\\ACSQLS"
+    database: "TAD_ECF"
+    uid: ""
+    pwd: ""
+    trusted: "Yes"
+    encoding: "LATIN1"
+
+  tad_external_sql:
+    driver: "SQL Server Native Client 11.0"
+    server: "3DCPRI-PDB16\\ACSQLS"
+    database: "TAD_External"
+    uid: ""
+    pwd: ""
+    trusted: "Yes"
+    encoding: "LATIN1"
+    
+  swfc_sql:
+    driver: "SQL Server Native Client 11.0"
+    server: "3DCPRI-PDB16\\ACSQLS"
+    database: "SWFC_Project"
+    uid: ""
+    pwd: ""
+    trusted: "Yes"
+    encoding: "LATIN1"
+    
+    
