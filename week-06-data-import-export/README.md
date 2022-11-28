@@ -41,23 +41,23 @@ of file types.
 
 3.  **Import .csv and .xlsx**
 
-    3.1 Import a CSV file from into R.
+    3.1 Import a CSV file into R.
 
     3.2 Import a XLSX file into R.
 
     3.3 Write a CSV.
 
-    3.4 Use the `sie()` function to view a CSV withput writting one.
+    3.4 Use the `sie()` function to view a CSV without writting one.
 
 4.  **Connect to an SQL database**
 
-    4.1 Conncet to an SQL database that you have access to. All TAD
-    staff should have access to \[TAD\_UserSpace\].
+    4.1 Conncet to an SQL database that you have access to. **All TAD
+    staff should have access to \[TAD\_UserSpace\]**.
 
-    4.2 You will need to create a config.yml file look at the
+    4.2 You will need to create a config.yml file. Look at the
     presentation to help you. See example below:
 
-    in config.yml
+    In config.yml
 
     `default:   tad_user_sql:     driver: "SQL Server Native Client 11.0"     server: "3DCPRI-PDB16\\ACSQLS"     database: "TAD_UserSpace"     uid: ""     pwd: ""     trusted: "Yes"     encoding: "LATIN1"`
 
@@ -69,7 +69,7 @@ of file types.
 5.  **Download from data from SQL connection**
 
     5.1 Download data from SQL with the conncetion you just made. You
-    can do this any other the three ways explained in presenation.
+    can do this any other the ways explained in presenation.
 
 6.  **`.fst` and `haven`**
 
