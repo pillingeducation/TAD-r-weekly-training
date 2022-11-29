@@ -156,7 +156,6 @@ list.files()
 
 ```
 
-
 . . .
 
 ```{r}
@@ -169,12 +168,12 @@ list.files()
 
 ```
 
-
-
 ## `sie()`
 
-There are times when you want to view a file as a `.csv` but you don't
-want to write a `.csv`. For this you can use the `sie()` function.
+There are times when you want to view a file in excel but you don't
+want to write a `.csv`. For this you can use the `sie()` function. 
+
+- `show_in_excel()` or `sie()` 
 
 . . .
 
@@ -190,7 +189,6 @@ sie <- function (.data)
 
 
 ```
-
 
 . . .
 
@@ -230,8 +228,6 @@ packages.
 
 -   For this method you will create a SQL connection function and will
     need a `config.yml` file
-  
-
 
 <!-- -->
 
@@ -245,15 +241,14 @@ packages.
         trusted: "Yes"
         encoding: "LATIN1"
         
-. . .    
 
+. . .
 
 ```{r}
 #| output-location: fragment
     odbcListDrivers()$name
 
 ```
-
 
 . . .
 

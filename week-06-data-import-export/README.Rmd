@@ -50,7 +50,34 @@ This week we'll discuss different methods for import/exporting a range of file t
 
     3.3 Write a CSV.
 
-    3.4 Use the `sie()` function to view a CSV without writting one. 
+    3.4 Use the `sie()` function to view a data frame in Excel without writting one as a CSV or XSLX. Add the below code to your R profile.  
+    
+    shortcut_env <- new.env()
+    with(.shortcut_env, {
+      shortcut <- function(f) structure(f, class = "shortcut")
+      print.shortcut <- function(f, ...) {
+        res <- withVisible(f(...))
+        if (res$visible) {
+          print(res$value)
+        }
+        res$value
+      }
+  
+  
+      sie <- shortcut(function(.data){
+        tmp <- paste0(tempfile(), ".xlsx")
+        writexl::write_xlsx(.data, tmp)
+        shell.exec(tmp)
+      })
+  
+    })
+
+
+
+    library(stats)
+    suppressMessages(attach(.shortcut_env))
+    registerS3method("print", "shortcut", print.shortcut)
+
 
 4.  **Connect to an SQL database**
 

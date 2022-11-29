@@ -47,7 +47,21 @@ of file types.
 
     3.3 Write a CSV.
 
-    3.4 Use the `sie()` function to view a CSV without writting one.
+    3.4 Use the `sie()` function to view a data frame in Excel without
+    writting one as a CSV or XSLX. Add the below code to your R profile.
+
+    shortcut\_env &lt;- new.env() with(.shortcut\_env, { shortcut &lt;-
+    function(f) structure(f, class = “shortcut”) print.shortcut &lt;-
+    function(f, …) { res &lt;- withVisible(f(…)) if
+    (res$visible) {  print(res$value) } res$value }
+
+    sie &lt;- shortcut(function(.data){ tmp &lt;- paste0(tempfile(),
+    “.xlsx”) writexl::write\_xlsx(.data, tmp) shell.exec(tmp) })
+
+    })
+
+    library(stats) suppressMessages(attach(.shortcut\_env))
+    registerS3method(“print”, “shortcut”, print.shortcut)
 
 4.  **Connect to an SQL database**
 
