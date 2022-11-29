@@ -1,0 +1,4 @@
+- source: presentaion_data_import_export.qmd
+  netlify:
+    - id: ac44c203-2f8b-4d58-8d0c-39c457d609e9
+      url: 'https://tad-week-06-data-import-export.netlify.app'
