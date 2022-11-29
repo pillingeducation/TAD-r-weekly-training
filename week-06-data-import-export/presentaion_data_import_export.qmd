@@ -144,8 +144,7 @@ clean_names()
 ## Writing `.csv` and `.xlsx`
 
 -   `readr::write_csv(x, file)` This write a CSV (comma delimited file).
--   `xlsx::write.xlsx()` was not working for me, some issue with Java (I
-    rarely use this anyway)
+-   `xlsx::write.xlsx()`
 
 . . .
 
@@ -170,10 +169,10 @@ list.files()
 
 ## `sie()`
 
-There are times when you want to view a file in excel but you don't
-want to write a `.csv`. For this you can use the `sie()` function. 
+There are times when you want to view a file in excel but you don't want
+to write a `.csv`. For this you can use the `sie()` function.
 
-- `show_in_excel()` or `sie()` 
+-   `show_in_excel()` or `sie()`
 
 . . .
 
@@ -194,7 +193,7 @@ sie <- function (.data)
 
 ```{r}
 #| output-location: fragment
-
+#| eval: false
 usethis::edit_r_profile()
 
 ```
@@ -203,6 +202,7 @@ usethis::edit_r_profile()
 
 ```{r}
 #| output-location: fragment
+#| eval: false
 
 sie(deaths)
 
@@ -381,7 +381,7 @@ You can also write to to SQL
     software programmes
     -   SAS `haven::read_sas()`
     -   SPSS`haven::read_sav()`
-    -   Stata `haven::read_sas()`
+    -   Stata `haven::read_dta()`
 
 ## Cheat sheet
 

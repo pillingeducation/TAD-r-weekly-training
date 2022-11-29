@@ -4,6 +4,8 @@ output: md_document
 
 <!-- Please edit README.Rmd - not README.md -->
 
+[Presentation](https://tad-week-06-data-import-export.netlify.app)
+
 # Week 6: Data import / export 
 
 This week we'll discuss different methods for import/exporting a range of file types.
@@ -11,8 +13,8 @@ This week we'll discuss different methods for import/exporting a range of file t
 
 # Resources
 
--   [R for Data Science](https://r4ds.had.co.nz/transform.html) has some bits on loading/exporting data
-- Cheat sheet 
+- [R for Data Science](https://r4ds.had.co.nz/transform.html) has some bits on loading/exporting data
+- [Data import/export cheat sheet](https://github.com/rstudio/cheatsheets/blob/main/data-import.pdf)
 
 # Exercises
 
@@ -52,6 +54,8 @@ This week we'll discuss different methods for import/exporting a range of file t
 
     3.4 Use the `sie()` function to view a data frame in Excel without writting one as a CSV or XSLX. Add the below code to your R profile.  
     
+    ``` {r eval = FALSE}
+    
     shortcut_env <- new.env()
     with(.shortcut_env, {
       shortcut <- function(f) structure(f, class = "shortcut")
@@ -77,6 +81,8 @@ This week we'll discuss different methods for import/exporting a range of file t
     library(stats)
     suppressMessages(attach(.shortcut_env))
     registerS3method("print", "shortcut", print.shortcut)
+    
+    ```
 
 
 4.  **Connect to an SQL database**
@@ -87,7 +93,8 @@ This week we'll discuss different methods for import/exporting a range of file t
     
     In config.yml
     
-    `       default:
+    ``` {r eval = FALSE}
+    default:
       tad_user_sql:
         driver: "SQL Server Native Client 11.0"
         server: "3DCPRI-PDB16\\ACSQLS"
@@ -96,6 +103,8 @@ This week we'll discuss different methods for import/exporting a range of file t
         pwd: ""
         trusted: "Yes"
         encoding: "LATIN1"`
+        
+    ```
         
     Use connection function then line below
     

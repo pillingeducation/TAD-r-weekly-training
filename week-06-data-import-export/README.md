@@ -1,5 +1,7 @@
 <!-- Please edit README.Rmd - not README.md -->
 
+[Presentation](https://tad-week-06-data-import-export.netlify.app)
+
 # Week 6: Data import / export
 
 This week we’ll discuss different methods for import/exporting a range
@@ -9,7 +11,8 @@ of file types.
 
 -   [R for Data Science](https://r4ds.had.co.nz/transform.html) has some
     bits on loading/exporting data
--   Cheat sheet
+-   [Data import/export cheat
+    sheet](https://github.com/rstudio/cheatsheets/blob/main/data-import.pdf)
 
 # Exercises
 
@@ -50,18 +53,31 @@ of file types.
     3.4 Use the `sie()` function to view a data frame in Excel without
     writting one as a CSV or XSLX. Add the below code to your R profile.
 
-    shortcut\_env &lt;- new.env() with(.shortcut\_env, { shortcut &lt;-
-    function(f) structure(f, class = “shortcut”) print.shortcut &lt;-
-    function(f, …) { res &lt;- withVisible(f(…)) if
-    (res$visible) {  print(res$value) } res$value }
+        shortcut_env <- new.env()
+        with(.shortcut_env, {
+          shortcut <- function(f) structure(f, class = "shortcut")
+          print.shortcut <- function(f, ...) {
+            res <- withVisible(f(...))
+            if (res$visible) {
+              print(res$value)
+            }
+            res$value
+          }
 
-    sie &lt;- shortcut(function(.data){ tmp &lt;- paste0(tempfile(),
-    “.xlsx”) writexl::write\_xlsx(.data, tmp) shell.exec(tmp) })
 
-    })
+          sie <- shortcut(function(.data){
+            tmp <- paste0(tempfile(), ".xlsx")
+            writexl::write_xlsx(.data, tmp)
+            shell.exec(tmp)
+          })
 
-    library(stats) suppressMessages(attach(.shortcut\_env))
-    registerS3method(“print”, “shortcut”, print.shortcut)
+        })
+
+
+
+        library(stats)
+        suppressMessages(attach(.shortcut_env))
+        registerS3method("print", "shortcut", print.shortcut)
 
 4.  **Connect to an SQL database**
 
@@ -73,7 +89,15 @@ of file types.
 
     In config.yml
 
-    `default:   tad_user_sql:     driver: "SQL Server Native Client 11.0"     server: "3DCPRI-PDB16\\ACSQLS"     database: "TAD_UserSpace"     uid: ""     pwd: ""     trusted: "Yes"     encoding: "LATIN1"`
+        default:
+          tad_user_sql:
+            driver: "SQL Server Native Client 11.0"
+            server: "3DCPRI-PDB16\\ACSQLS"
+            database: "TAD_UserSpace"
+            uid: ""
+            pwd: ""
+            trusted: "Yes"
+            encoding: "LATIN1"`
 
     Use connection function then line below
 
