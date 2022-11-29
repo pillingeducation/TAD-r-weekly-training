@@ -152,12 +152,24 @@ clean_names()
 ```{r}
 #| output-location: fragment
 
+list.files()
+
+```
+
+
+. . .
+
+```{r}
+#| output-location: fragment
+
 write_csv(deaths, "arts_deaths.csv") 
+
+list.files()
 
 
 ```
 
-. . .
+
 
 ## `sie()`
 
@@ -179,7 +191,15 @@ sie <- function (.data)
 
 ```
 
+
 . . .
+
+```{r}
+#| output-location: fragment
+
+usethis::edit_r_profile()
+
+```
 
 . . .
 
@@ -210,10 +230,10 @@ packages.
 
 -   For this method you will create a SQL connection function and will
     need a `config.yml` file
+  
 
-```{=html}
+
 <!-- -->
-```
 
     default:
       tad_ecf_sql:
@@ -224,6 +244,16 @@ packages.
         pwd: ""
         trusted: "Yes"
         encoding: "LATIN1"
+        
+. . .    
+
+
+```{r}
+#| output-location: fragment
+    odbcListDrivers()$name
+
+```
+
 
 . . .
 
@@ -322,15 +352,14 @@ Use `dplyr` to `collect()`
 
 ```{r}
 #| output-location: fragment
-
-
-  #tbl(src = swfc_project_con , "SWFC.School" ) %>% 
-  #filter(LA_code %in% c('330','350'),
-   #      SchoolPhase == "Special") %>%
-  #group_by(LA_code) %>%
-  #mutate(count_special = n()) %>%
-  #select(LA_code, count_special) %>% 
-  #collect() #this tells dplyr to execute and store the query
+id <- Id(database = "SWFC_Project", schema = "SWFC", table  = "School")
+ tbl(swfc_project_con , from = id) %>%
+  filter(LA_Code %in% c('330','350'),
+         SchoolPhase == "Special") %>%
+  group_by(LA_Code) %>%
+  summarise(count_special = n()) %>%
+  select(LA_Code, count_special) %>%
+  collect() #this tells dplyr to execute and store the query
 
 
 ```
@@ -361,4 +390,5 @@ You can also write to to SQL
 
 ## Cheat sheet
 
-[Data import/export cheat sheet](https://github.com/rstudio/cheatsheets/blob/main/data-import.pdf)
+[Data import/export cheat
+sheet](https://github.com/rstudio/cheatsheets/blob/main/data-import.pdf)
