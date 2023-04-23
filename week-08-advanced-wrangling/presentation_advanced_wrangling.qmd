@@ -1,0 +1,702 @@
+---
+title: "Advanced wrangling"
+author: "Niall Ward-O'Brien"
+format: 
+  revealjs:
+    smaller: true
+    scrollable: true
+editor: visual
+knitr: 
+  opts_chunk: 
+    echo: true
+---
+
+## Advanced wrangling
+
+We will cover
+
+-   Some best practices for project setup
+
+-   `tidylog`
+
+-   extreme `select`
+
+-   advanced `filter`ing
+
+-   how to `mutate` like the pros
+
+```{r include=FALSE}
+
+library(tidyverse)
+library(tidylog)
+
+
+```
+
+## Setting up your projects
+
+-   Create the following folders and files! *Consider having a 'project
+    template' folder with empty files that you can just copy across when
+    you create a new R project.*
+
+    -   **Inputs** - store input data - e.g. spreadsheets. A good rule
+        of thumb is that you shouldn't put anything in here that your
+        project makes itself. This maximises reproducibility.
+
+    -   **Outputs** - store anything your project makes, so you can
+        easily delete it and check reproducibility. Consider subfolders
+        like 'models', 'graphs', 'data_export' if you expect to have a
+        lot of outputs.
+
+    -   **Queries** - to store SQL queries. I don't know if everyone
+        does this - personal choice.
+
+    -   **Scripts** - to store your scripts.
+
+. . .
+
+### Naming scripts
+
+-   It's useful to name scripts with a number at the beginning so the
+    order of execution is clear. E.g.
+
+    -   `00_load_packages.R`, `01_get_data.R`, `02_clean_data.R`.
+
+    -   You can have a 'run' script which just calls all the other
+        scripts in order.
+
+``` r
+source('scripts/00_load_packages.R')
+source('scripts/01_get_data.R')
+source('scripts/02_clean_data.R')
+...
+```
+
+-   How much you break up your scripts is a matter of taste to some
+    extent. If you do it too much, expect to do a lot of searching
+    through many different files to find things. If you do it too
+    little, files can get very long.
+
+. . .
+
+## Internal structure
+
+-   You can break up your R scripts with subheadings
+-   Rstudio will turn this into an 'outline' so you can easily navigate
+    around your scripts
+
+``` r
+# heading 1 -------------------------------------------------------------------------------
+
+## subheading 2 ---------------------------------------------------------------------------
+
+### subsubheading 3 -----------------------------------------------------------------------
+```
+
+. . .
+
+## `tidylog` - your friend and mine
+
+-   `tidylog` prints handy diagnostic information about many tidyverse
+    operations when you do them:
+
+. . .
+
+```{r, echo = T, message = T}
+
+tibble <- tibble(
+  first_name = c('Adnan', 'Barbara', 'Chase'),
+  second_name = c('Jefferies', 'Gordon', NA)
+) %>%
+  mutate(full_name = paste0(first_name, " ", second_name))
+
+```
+
+. . .
+
+-   You'll also get useful messages when you do a join:
+
+```{r, echo = T, message = T}
+
+teachers <- expand.grid(
+  id = 1:1000
+) %>%
+  mutate(urn = sample(1:11, n(), TRUE),
+         gender = sample(c('M', 'F', 'NB'), size = n(), replace = T),
+         ethnic_minority = sample(c('WB', 'EM'), size = n(), replace = T, prob = c(0.85, 0.15)),
+         leadership = sample(c('CT', 'LS'), size = n(), replace = T, prob = c(0.8, 0.2)),
+         age = rnorm(n(), 35, 10)) %>%
+  expand_grid(.,
+    census_year = 2010:2020) %>%
+  mutate(age = age + census_year - 2010,
+         age = ifelse(runif(n()) > 0.95, age - 20, age),
+         age_rounded = round(age),
+         ethnic_minority = ifelse(runif(n()) > 0.95, 
+                                  sample(c('WB', 'EM'), size = n(), replace = T), 
+                                  ethnic_minority))
+
+schools <- expand.grid(
+  urn = 1:12,
+  census_year = 2010:2020
+) %>%
+  mutate(p_pupil_premium = runif(n()),
+         p_pupil_premium = ifelse(runif(n()) > 0.95, NA, p_pupil_premium),
+         n_pupils = 10^runif(n(), 1, 3),
+         n_pupils = ifelse(runif(n()) > 0.95, NA, n_pupils))
+
+# bad join
+teacher_school_joined <- left_join(teachers, schools,
+          by = c('urn'))
+
+# good join
+teacher_school_joined <- left_join(teachers, schools,
+          by = c('urn', 'census_year'))
+```
+
+. . .
+
+Aids *a lot* in picking up errors, e.g.:
+
+-   Why do I have 45% `NA`s after my mutate?
+
+-   Why did my filter remove that few/many rows?
+
+-   Why aren't I joining in all schools?
+
+-   Why does my join make duplicate rows/columns?
+
+# Advanced select {.scrollable}
+
+## Select is an incredibly powerful tool!
+
+. . .
+
+```{r echo = T, message = T}
+
+teacher_school_joined %>%
+  # rename columns on the fly
+  select(trn = id)
+
+teacher_school_joined %>%
+  # reorder columns
+  select(census_year,
+         id,
+         everything())
+
+teacher_school_joined %>%
+  # select character columns only
+  select(id,
+         where(is.character))
+```
+
+. . .
+
+```{r}
+teacher_school_joined %>%
+  # remove a specific column
+  select(-age)
+
+teacher_school_joined %>%
+  # remove columns that start with a specific string
+  select(-starts_with('age'))
+
+teacher_school_joined %>%
+  # remove/select columns that contain a specific string
+  # commands are considered sequentially, acting on the whole set of columns, the following     first removes all columns containing 'r' in their name, before adding all columns with     names containing 'o':
+  select(-contains('r'),
+         contains('o'))
+```
+
+# Advanced filtering
+
+## Working with a subsample
+
+I do a lot of my work on teacher data - which currently runs to 6.5
+million rows. This can be very taxing for R on a standard laptop, so if
+I make a mistake (often) it can take a lot of time to test!
+
+Even if your data isn't as large as this, it can be handy to do your
+code writing and testing on a sample of your data before expanding. Some
+ways that I do this:
+
+```{r echo = T, message = T}
+
+teacher_sample <- teacher_school_joined %>%
+  # with slice_sample, you can specify a number of rows or a proportion
+  slice_sample(n = 100)
+
+# often, I want a sample which contains all the data we hold on a particular teacher - no problem!
+teacher_ids <- unique(teacher_school_joined$id)
+teacher_id_sample <- sample(x = teacher_ids,
+                            size = 10,
+                            replace = FALSE)
+
+teacher_sample <- teacher_school_joined %>%
+  filter(id %in% teacher_id_sample)
+
+
+# in more compressed form:
+teacher_sample <- teacher_school_joined %>%
+  filter(id %in% sample(x = unique(teacher_school_joined$id),
+                        size = 10,
+                        replace = FALSE))
+```
+
+. . .
+
+How about if we want all the rows for teachers who ever worked in a
+random school?
+
+```{r echo = T, message = T}
+
+teacher_sample <- teacher_school_joined %>%
+  group_by(id) %>%
+  filter(any(urn) %in% sample(x = unique(teacher_school_joined$urn),
+                        size = 1,
+                        replace = FALSE))
+
+teacher_sample %>%
+  ungroup() %>%
+  filter(id == max(id))
+
+```
+
+. . .
+
+## Grouped filters, `all` and `any`
+
+Remember that when you use `group_by`, R is effectively chopping up your
+data into many tiny dataframes. Any operation you apply will apply to
+each of those data frames separately.
+
+What if we want to find all schools where the median age is greater than
+35?
+
+```{r echo = T, message = T}
+
+teacher_school_joined %>%
+  # first we group_by school URN
+  group_by(urn) %>%
+  filter(median(age) > 35) %>%
+  ungroup() %>%
+  count(urn)
+```
+
+Imagine we want to find all schools that have teachers older than 45,
+without dropping the other teachers:
+
+```{r echo = T, message = T}
+
+teacher_school_joined %>%
+  # first we group_by school URN
+  # we want to filter based on the composition of each school
+  group_by(urn) %>%
+  filter(any(age > 45)) %>%
+  ungroup() %>%
+  count(urn)
+
+# what if we want schools where all the teachers are younger than 35?
+teacher_school_joined %>%
+  # first we group_by school URN
+  # we want to filter based on the composition of each school
+  group_by(urn) %>%
+  filter(all(age < 45)) %>%
+  ungroup() %>%
+  count(urn)
+
+# we could make this much more complicated - for example - what if we want only schools in   which one of their teachers was from an ethnic minority AND over age 45?
+teacher_school_joined %>%
+  group_by(urn, census_year) %>%
+  filter(any(age > 45 & ethnic_minority == 'EM')) %>%
+  ungroup() %>%
+  count(urn)
+```
+
+. . .
+
+### Using flags
+
+Flags can make complex logical operations easier to follow, rather than
+sticking everything in a filter.
+
+Imagine, for some reason, we want to find all teachers who fit one of
+two sets of demographic criteria:
+
+-   Aged between 25 and 35 and Female and Ethnic Minority
+
+-   OR aged between 45 and 65 and Male and White British
+
+. . .
+
+```{r echo = T, message = T}
+
+# this works:
+teacher_school_joined %>%
+  filter((age > 25 & age < 35 & gender == 'F' & ethnic_minority == 'EM') |
+           (age > 45 & age < 65 & gender == 'M' & ethnic_minority == 'WB')) %>%
+  count()
+
+# but this is easier to read and debug
+teacher_school_joined %>%
+  # create two flags first
+  # note that we don't need to do an if_else - we can just write the criteria
+  # this will make a true/false column
+  mutate(younger_em_woman = age > 25 & age < 35 
+         & gender == 'F' 
+         & ethnic_minority == 'EM',
+         older_white_man = age > 45 & age < 65 
+         & gender == 'M' 
+         & ethnic_minority == 'WB') %>%
+  
+  # note that these variables are either true or false, so we don't need to say
+  # younger_em_woman == TRUE
+  filter(younger_em_woman | older_white_man) %>%
+  count(younger_em_woman, older_white_man)
+```
+
+## Using `if_any` and `if_all`
+
+If we want to apply a filter to many columns at once, we can use
+`if_any` or `if_all` :
+
+-   `.cols` - which columns do you want to apply your filtering function
+    to? You can apply all the advanced `select` options here.
+
+-   `.fns` - what function(s) do you want to apply to them? This is more
+    or less the same thing that you would put in a `mutate` or `filter`
+    statement, but with some key differences:
+
+    -   it needs to start with a tilde (\~)
+
+    -   we use `.x` to represent 'name of the column'
+
+To give a concrete example, imagine that we want to remove all rows of
+our dataset that contain an NA in any numeric column:
+
+```{r echo = T, message = T}
+
+teacher_school_joined %>%
+  filter(
+    if_all(
+      .cols = where(is.numeric),
+      .fns = ~ !is.na(.x)
+    )
+         )
+```
+
+## Checking your data
+
+We can use filters and grouping to check for weirdness in our data by
+pulling up odd cases:
+
+```{r echo = T, message = T}
+
+# filter to show teachers whose recorded ethnicity changed at some point
+teacher_school_joined %>%
+  # group by teacher
+  group_by(id) %>%
+  filter(n_distinct(ethnic_minority) > 1)
+```
+
+# Advanced `mutate`
+
+## Creating variables at different levels of grouping
+
+```{r}
+
+teacher_school_joined <- teacher_school_joined %>%
+  slice_sample(prop = 0.9)
+
+teacher_school_joined <- teacher_school_joined %>%
+  mutate(leadership = sample(c('CT', 'LS'), size = n(), replace = T, prob = c(0.9, 0.1)))
+```
+
+We can combine `group_by` and `mutate` to make a flag that shows whether
+a teacher has ever been in leadership:
+
+```{r echo = T, message = T}
+
+teacher_school_joined %>%
+  group_by(id) %>%
+  mutate(leadership_ever = any(leadership == 'LS')) %>%
+  ungroup() %>%
+  count(leadership_ever)
+```
+
+Imagine we want to analyse the effect of ethnic diversity in leadership
+teams. How can we calculate a measure to capture this?
+
+```{r echo = T, message = T}
+
+teacher_school_joined %>%
+  mutate(em_in_leadership_flag = ethnic_minority == 'EM' & leadership == 'LS') %>%
+  group_by(census_year, urn) %>%
+  # note that we can 'sum' true and false values - R treats them as 1 and 0
+  mutate(proportion_em_leaders = sum(em_in_leadership_flag) / sum(leadership == 'LS')) %>%
+  ggplot(aes(x = proportion_em_leaders)) +
+  geom_histogram(binwidth = 0.1,
+                 colour = 'black',
+                 fill = 'cornflowerblue')
+```
+
+## `lead` and `lag`
+
+We might want to create variables whose value depends on what teachers
+were doing at a different time point - for example, have they been
+promoted? Have they left?
+
+Lead and lag are useful functions for this job:
+
+```{r echo = T, message = T}
+
+seq <- 1:10
+
+print(seq)
+lead(seq, n = 1)
+lag(seq, n = 1)
+```
+
+Lead and lag take in a list and spit out the value n rows down (or up)
+from that value.
+
+**NOTE: They are dumb functions! They don't care if there are (e.g.)
+years missing in your data! They don't care if your data is not in the
+right order!**
+
+Why is this a problem for our data? We don't have rows where teachers
+weren't present, so `lead` and `lag` will skip right over them.
+
+```{r echo = T, message = T}
+
+teacher_school_joined_complete <- teacher_school_joined %>%
+  mutate(present = 1) %>%
+  # fill in all combinations of years and teachers - so we have one row per teacher per year
+  complete(census_year, id) %>%
+  mutate(present = ifelse(is.na(present), 0, 1))
+  
+teacher_school_joined_complete %>%
+  # group by teacher and arrange by census year
+  group_by(id) %>%
+  arrange(census_year) %>%
+  mutate(present_next_year = lead(present),
+         leadership_next_year = lead(leadership)) %>%
+  
+  mutate(leaver = present == 1 & present_next_year == 0,
+         promoted = leadership == 'CT' & leadership_next_year == 'LS') %>%
+  
+  ungroup() %>%
+  
+  # summarise leaver and promoted rates
+  # note that we have NAs where staff have left - we treat their promotion status as unknown
+  group_by(census_year) %>%
+  summarise(leaver_rate = round(mean(leaver) * 100, 1),
+            promoted_rate = round(mean(promoted, na.rm = T) * 100, 1)
+            )
+
+```
+
+## `across`
+
+A handy tool for changing many variables at once:
+
+-   `.cols`: a select statement saying which columns you want to change
+
+-   `.fns`: a formula showing what you want to do to the columns
+
+-   `.names`: rules for naming the new columns. If you don't specify
+    names, it will overwrite the old one
+
+. . .
+
+```{r echo = T, message = T}
+
+# round all numeric columns to 3 sf
+teacher_school_joined %>%
+  mutate(across(.cols = where(is.numeric),
+         .fns = ~ signif(.x, digits = 3))
+         )
+```
+
+. . .
+
+A slightly more complex example:
+
+```{r echo = T, message = T}
+
+# scale all columns, creating new columns instead of overwriting the old ones
+teacher_school_joined %>%
+  mutate(across(.cols = where(is.numeric),
+         .fns = ~ round(scale(.x), 3),
+         .names = '{.col}_scaled')
+         ) %>%
+  
+  select(contains('scaled'))
+```
+
+. . .
+
+Using a list of functions and `summarise` rather than `mutate`. We can
+conveniently summarise all our numeric variables at once:
+
+```{r echo = T, message = T}
+
+# scale all columns, creating new columns instead of overwriting the old ones
+teacher_school_joined %>%
+  group_by(census_year) %>%
+  summarise(across(.cols = where(is.numeric),
+         .fns = list(mean = ~ mean(.x, na.rm = T), 
+                     median = ~ median(.x, na.rm = T)),
+         .names = '{.col}_{.fn}')
+         ) %>%
+  
+  select(-contains('id'),
+         -contains('urn'))
+```
+
+## `rank`
+
+Does as the name suggests!
+
+Why would you want to rank rows in your data?
+
+Imagine that we want to know how long a teacher has been in leadership:
+
+```{r echo = T}
+
+teacher_school_joined_complete %>%
+  group_by(id, leadership) %>%
+  mutate(years_in_role = rank(census_year)) %>%
+  filter(id == 1) %>%
+  select(census_year, leadership, years_in_role)
+```
+
+## `cut & ntile`
+
+`cut` is a useful command for quickly collapsing continuous data to
+bins:
+
+```{r echo = T}
+
+teacher_school_joined <- teacher_school_joined %>%
+  # groups split at specific points
+  mutate(age_bins = cut(age, breaks = c(0, 10, 20, 30, 40, 50, 60, 70, 80, 200)),
+         # split into 10 deciles
+         age_ntile = ntile(age, n = 10))
+
+teacher_school_joined %>%
+  count(age_bins)
+
+teacher_school_joined %>%
+  ggplot(aes(x = age_bins,
+             fill = factor(urn))) +
+  geom_bar() +
+  facet_wrap(vars(urn))
+```
+
+## Subsetting
+
+I don't know if this has a real name, but it is quite handy.
+
+We can use square brackets to limit our mutate statements to particular
+conditions.
+
+This is kind of similar to how R's base syntax works
+
+```{r, echo = T}
+
+seq <- 1:10
+seq[seq %% 3 == 0]
+
+```
+
+. . .
+
+We could have used this approach to find ethnic minority leaders:
+
+```{r echo = T}
+
+teacher_school_joined_complete %>%
+  group_by(urn, census_year) %>%
+  # the text in brackets subsets the column to only sum those teachers who are in leadership AND from an EM background
+  summarise(perc_em_leadership = sum((leadership == 'LS')[ethnic_minority == 'EM' & age > 35]) / sum(leadership == 'LS'))
+```
+
+# Pivoting
+
+## A method for quick QA summaries of data:
+
+When should we pivot longer?
+
+One useful time is when we want to treat the columns as items to
+summarise themselves, rather than as attributes of an individual row.
+
+Let's say we want to make a quick summary of each of our columns for QA
+purposes. We'd ideally like to know the mean, median, interquartile
+range, number of NAs and number of zeros.
+
+That's a lot of summarise statements to write, because we have to write
+a new one for every numeric column. For convenience, why not just put
+all the numeric columns into one?
+
+. . .
+
+```{r echo = T, message = T}
+
+teacher_school_joined_complete %>%
+  pivot_longer(cols = where(is.numeric)) %>%
+  group_by(name) %>%
+  summarise(
+    mean = mean(value, na.rm = T),
+    median = median(value, na.rm = T),
+    iqr_range = IQR(value, na.rm = T),
+    na = sum(is.na(value)),
+    zero = sum(value == 0, na.rm = T)
+  ) %>%
+
+  mutate(across(where(is.numeric),
+                ~ signif(.x, 3)
+                )
+         )
+```
+
+. . .
+
+## Making dummy variables quickly
+
+We can use `pivot_wider` to quickly turn the values in one column (which
+might be strings) into dummy variables spread across several columns.
+
+```{r}
+
+# a tedious way of making dummy columns
+teacher_school_joined %>%
+  mutate(age_char_30_40 = ifelse(age_bins == '(30, 40]', 1, 0),
+         age_char_40_50 = ifelse(age_bins == '(40, 50]', 1, 0)
+         ) # and so on, and so on
+
+# we create some dummy variables so that when we pivot, they get spread across
+teacher_school_joined %>%
+  mutate(age_dummy = 1,
+         leadership_dummy = 1) %>%
+  
+  pivot_wider(names_from = age_bins,
+              values_from = age_dummy,
+              # names prefix means you can tell what your columns mean
+              names_prefix = "agechar_",
+              values_fill = 0) %>%
+  
+  pivot_wider(names_from = leadership,
+              names_prefix = 'leadership_',
+              values_from = leadership_dummy,
+              values_fill = 0) %>%
+  
+  select(id, 
+         starts_with('agechar'),
+         starts_with('leadership'))
+```
+
+. . .
+
+Just a note that this is often not necessary. R is very good at turning
+variables into factors when we need it to - e.g. in regression or when
+plotting a graph.
