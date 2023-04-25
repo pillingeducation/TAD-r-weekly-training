@@ -1,0 +1,389 @@
+---
+title: "Data import and export"
+author: "Samuel Pilling"
+format: 
+  revealjs:
+    smaller: true
+    scrollable: true
+editor: visual
+knitr: 
+  opts_chunk: 
+    echo: true
+---
+
+## Data import/export contents
+
+We will cover
+
+-   Importing/writing .csv and .xlsx files
+-   `sie()` function
+-   Importing/writing .fst files
+-   Connecting to SQL
+-   Downloading table/views from SQL
+-   Writing to tables to SQL
+-   Import files from other software packages.
+
+```{r include=FALSE}
+
+library(readxl)
+library(readr)
+library(data.table)
+library(readxl)
+library(DBI)
+library(odbc)    
+library(janitor)
+library(dplyr)
+library(fst)
+
+
+```
+
+## Importing `.csv`
+
+There are a number of packages you can use to read csv files I will
+discuss a few below:
+
+-   `readr::read_csv("filepath")` *advantage bit faster and creates a
+    tibble*
+
+-   `base::read.csv("filepath")` *base R option*
+
+-   `data.table::fread()` *for larger .CSVs*
+
+-   `read_delim()` *guess what deliminator to use but you can specify*
+
+. . .
+
+```{r}
+#| output-location: fragment
+read_csv("air_cleaning_units_delivered.csv") %>% 
+  clean_names()
+
+```
+
+. . .
+
+```{r}
+#| output-location: fragment
+read_csv("air_cleaning_units_delivered.csv",col_names = F, col_type = list(.default = col_guess())) %>% 
+  clean_names()
+
+```
+
+. . .
+
+```{r}
+#| output-location: fragment
+read_csv("air_cleaning_units_delivered.csv",col_names = T, col_type = list(.default = "i" )) %>% 
+  clean_names()
+
+```
+
+. . .
+
+## Importing `.xlsx` or `.xls`
+
+For `.xlsx` files there are less options
+
+I use `readxl::read_excel` to import excel files (both .xls and .xlsx).
+
+-   `read_excel()`
+
+. . .
+
+```{r}
+#| output-location: fragment
+xls_path <- readxl_example("clippy.xls")
+
+read_excel(xls_path) %>% 
+  clean_names()
+```
+
+. . .
+
+```{r}
+#| output-location: fragment
+xlsx_path <- readxl_example("deaths.xlsx")
+
+read_excel(xlsx_path) %>% 
+  clean_names()
+
+```
+
+. . .
+
+```{r}
+#| output-location: fragment
+
+xlsx_path <- readxl_example("deaths.xlsx")
+
+read_excel(xlsx_path, skip = 4) %>% 
+  clean_names()
+  
+```
+
+. . .
+
+```{r}
+#| output-location: fragment
+
+xlsx_path <- readxl_example("deaths.xlsx")
+
+read_excel(xlsx_path, range = "arts!A5:F15") %>%
+clean_names()
+
+deaths <- read_excel(xlsx_path, range = "arts!A5:F15") %>%
+clean_names()
+
+
+
+```
+
+. . .
+
+## Writing `.csv` and `.xlsx`
+
+-   `readr::write_csv(x, file)` This write a CSV (comma delimited file).
+-   `xlsx::write.xlsx()`
+
+. . .
+
+```{r}
+#| output-location: fragment
+
+list.files()
+
+```
+
+. . .
+
+```{r}
+#| output-location: fragment
+
+write_csv(deaths, "arts_deaths.csv") 
+
+list.files()
+
+
+```
+
+## `sie()`
+
+There are times when you want to view a file in excel but you don't want
+to write a `.csv`. For this you can use the `sie()` function.
+
+-   `show_in_excel()` or `sie()`
+
+. . .
+
+```{r}
+#| output-location: fragment
+
+sie <- function (.data) 
+{
+  tmp <- paste0(tempfile(), ".xlsx")
+  writexl::write_xlsx(.data, tmp)
+  shell.exec(tmp)
+}
+
+
+```
+
+. . .
+
+```{r}
+#| output-location: fragment
+#| eval: false
+usethis::edit_r_profile()
+
+```
+
+. . .
+
+```{r}
+#| output-location: fragment
+#| eval: false
+
+sie(deaths)
+
+```
+
+. . .
+
+## `.fst`
+
+`.fst` are compressed files. This helps when working with large files.
+
+`write_fst(x, path, compress = 50, uniform_encoding = TRUE)`
+
+`read_fst( path, columns = NULL,from = 1,to = NULL,as.data.table = FALSE, old_format = FALSE)`
+
+`rm()` is also useful for removing large files from your environment
+
+## Connecting to SQL database
+
+There are a number of different ways to connect to SQL this is just my
+method but all of them most likely will use the `DBI` and `odbc`
+packages.
+
+-   For this method you will create a SQL connection function and will
+    need a `config.yml` file
+
+<!-- -->
+
+    default:
+      tad_ecf_sql:
+        driver: "SQL Server Native Client 11.0"
+        server: "3DCPRI-PDB16\\ACSQLS"
+        database: "TAD_ECF"
+        uid: ""
+        pwd: ""
+        trusted: "Yes"
+        encoding: "LATIN1"
+        
+
+. . .
+
+```{r}
+#| output-location: fragment
+    odbcListDrivers()$name
+
+```
+
+. . .
+
+```{r}
+#| output-location: fragment
+
+connection_function <- function(dsn, database){
+   
+   dbConnect(odbc::odbc(),
+             Driver = dsn$driver,
+             Server = dsn$server,
+             Database = database,
+             UID = dsn$uid,
+             PWD = dsn$pwd,
+             Trusted_Connection = dsn$trusted,
+             encoding = dsn$encoding)
+}
+
+```
+
+. . .
+
+Then you will make SQL connections to any databases in your config file
+
+. . .
+
+```{r}
+#| output-location: fragment
+
+swfc_project <- config::get("swfc_sql")
+
+swfc_project_con <- connection_function(swfc_project, "SWFC_Project")
+
+
+tad_external <- config::get("tad_external_sql")
+
+tad_external_con <- connection_function(tad_external, "TAD_External")
+
+
+
+```
+
+. . .
+
+## Downloading SQL data
+
+Write query in R script
+
+. . .
+
+```{r}
+#| output-location: fragment
+
+dbGetQuery( conn = swfc_project_con,
+            "SELECT * FROM [SWFC_Project].[SWFC].[School]") %>%
+  clean_names()
+```
+
+. . .
+
+dbReadTable
+
+. . .
+
+```{r}
+#| output-location: fragment
+
+dbReadTable(conn = swfc_project_con,
+            name = Id( schema = "SWFC", table = "School")) %>%
+  clean_names()
+
+```
+
+. . .
+
+Write query in file and read it in. *for more complex queries*
+
+. . .
+
+```{r}
+#| output-location: fragment
+
+dbGetQuery( conn = swfc_project_con,
+            read_file("swfc_special.sql")) %>%
+  clean_names()
+
+
+swfc_school_special <- dbGetQuery( conn = swfc_project_con,
+            read_file("swfc_special.sql")) %>%
+  clean_names()
+```
+
+. . .
+
+Use `dplyr` to `collect()`
+
+```{r}
+#| output-location: fragment
+id <- Id(database = "SWFC_Project", schema = "SWFC", table  = "School")
+ tbl(swfc_project_con , from = id) %>%
+  filter(LA_Code %in% c('330','350'),
+         SchoolPhase == "Special") %>%
+  group_by(LA_Code) %>%
+  summarise(count_special = n()) %>%
+  select(LA_Code, count_special) %>%
+  collect() #this tells dplyr to execute and store the query
+
+
+```
+
+## write to SQL
+
+You can also write to to SQL
+
+```{r}
+#| output-location: fragment
+
+
+  dbWriteTable(conn = tad_external_con, 
+                name = Id(schema = "dbo", 
+                          table  = "tmp_r_to_sql"),
+                value = swfc_school_special,
+                overwrite = TRUE)
+
+```
+
+## `haven` package
+
+-   `haven` package allows you to read file types from other statistical
+    software programmes
+    -   SAS `haven::read_sas()`
+    -   SPSS`haven::read_sav()`
+    -   Stata `haven::read_dta()`
+
+## Cheat sheet
+
+[Data import/export cheat
+sheet](https://github.com/rstudio/cheatsheets/blob/main/data-import.pdf)

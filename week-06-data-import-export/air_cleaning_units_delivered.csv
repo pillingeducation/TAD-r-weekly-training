@@ -1,0 +1,6 @@
+﻿time_period,time_identifier,geographic_level,country_code,country_name,date,cumulative_number_air_cleaning_units_delivered
+2022,Week 7,National,E92000001,England,11/02/2022,"6,311"
+2022,Week 9,National,E92000001,England,25/02/2022,"7,647"
+2022,Week 11,National,E92000001,England,11/03/2022,"7,910"
+2022,Week 19,National,E92000001,England,06/05/2022,"8,017"
+2022,Week 26,National,E92000001,England,24/05/2022,"8,026"
