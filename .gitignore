@@ -46,3 +46,7 @@ po/*~
 
 # Participants tracking spreadsheet
 participants.xlsx
+
+# maps shapefile data 
+folder_to_ignore/"week-09-maps/data/LAD_BUC_2022/"
+

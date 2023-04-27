@@ -1,0 +1,289 @@
+---
+title: "Spatial data and Maps in R"
+author: "Samuel Pilling"
+format: 
+  revealjs:
+    smaller: true
+    scrollable: true
+editor: visual
+self-contained: false
+knitr: 
+  opts_chunk: 
+    echo: true
+---
+
+------------------------------------------------------------------------
+
+## Today we will aim to cover:
+
+Brief introduction to spatial data in R
+
+-   Packages `sf`, `terra` and `rgdal`.
+
+-   Spatial data - raster, vector and Shapefile.
+
+Making maps
+
+-   `ggmap` and `leaflet`
+
+```{r include=FALSE}
+
+library(tidyverse)
+library(tidylog)
+library(sf)
+library(janitor)
+library(ggplot2)
+
+```
+
+## Spatial data packages
+
+There are a number of packages in R that have been designed to work with
+spatial data.
+
+I previously used `rgdal` but this is to be discontinued
+(<https://r-spatial.org/r/2022/04/12/evolution.html>)
+
+So for the examples in this presentation I will use the `sf` package.
+
+There is also other packages `terra` and `stars`.
+
+## Spatial data
+
+There are different types of spatial data -
+
+-   Raster data (this data type is used mainly for elevation)
+
+-   Vector data (coordinate data - points, lines or polygons) we use
+    this for maps
+
+Both these data types are mostly stored in Shapefiles.
+
+. . .
+
+## Shapefiles
+
+Shapefiles are group of files stored in the same directory.
+
+All Shapefiles must have these three files:
+
+-   `.shp` shape format - the geometry
+-   `.shx` shape index format - the positional index
+-   `.dbf` attributes format - attributes for each shape eg long / lat
+    and name
+
+Optional
+
+-   `.prj` projection description - a coordinate reference system
+-   Many others file types...
+
+## Shapefiles on geoportal
+
+We can get Shapefiles from ONS Geoportal
+
+-   <https://geoportal.statistics.gov.uk/>
+
+There are four types:
+
+-   BFC, BFE, BGC and BUC.
+
+These vary in size and accuracy, but we use the smallest file **BUC** as
+it runs quickest.
+
+We do not need super accurate data at the level we use it, most of time.
+
+(BUC) Ultra Generalised (500m) - clipped to the coastline (Mean High
+Water mark)
+
+Guidance here -
+
+<https://www.ons.gov.uk/methodology/geography/geographicalproducts/digitalboundaries>
+
+## Data need to render this quarto document
+
+-   lad_swc_2025.csv (synthetic data)
+-   LAD_BUC_2022 Shapefile you need to download from
+    <https://geoportal.statistics.gov.uk/search?collection=Dataset&sort=name&tags=all(BDY_LAD%2CDEC_2022>
+    - make sure the file paths are correct before running presentation
+
+## ggplot, sf and ggmap
+
+To make some quick chloropleth maps you can use a combination of
+`ggplot` and `sf`.
+
+First you need to read in the Shapefile using the `sf` package:
+
+. . .
+
+```{r, echo = T, message = T}
+
+
+lad_2022_buc <-  sf::st_read("data/LAD_BUC_2022", quiet = TRUE)
+
+View(lad_2022_buc)
+
+```
+
+. . .
+
+You can see the Shapefile has no data attached. But we can quickly plot
+it either using the `sf` package or `ggplot`
+
+```{r, echo = T, message = T}
+
+plot(lad_2022_buc["LAD22NM"])
+
+
+ggplot(lad_2022_buc) + 
+  geom_sf(aes(fill = "LAD22NM"))
+```
+
+. . .
+
+You can see the Shapefile has Wales, Northern Ireland and Scotland we
+can remove these and join on some SWFC LAD 2025 data (fabricated)
+
+We can remove them by:
+
+```{r, echo = T, message = T}
+
+lad_2022_buc_eng <- lad_2022_buc %>%
+  filter(grepl("E",LAD22CD)) %>%
+  left_join(read.csv("data/lad_swc_2025.csv"), by = c("LAD22CD" = "lad_2025_cd"))
+
+```
+
+. . .
+
+Now we can plot SWC LAD data chlorpleth maps with data
+
+```{r, echo = T, message = T}
+
+ggplot(lad_2022_buc_eng) + 
+  geom_sf(aes(fill=median_teacher_age))
+
+```
+
+. . .
+
+## Clearer ggplot maps
+
+```{r, echo = T, message = T}
+
+ggplot(lad_2022_buc_eng) + 
+  geom_sf(aes(fill=median_teacher_age)) + 
+  scale_fill_gradient2(low = "red", mid = "white", high = "blue",
+                      midpoint = median(lad_2022_buc_eng$median_teacher_age)) +
+  theme_void()+ 
+    labs(x = NULL, 
+         y = NULL, 
+         title = "Englsih teacher median age", 
+         subtitle = "Teacher median age by LAD, 2025", 
+         caption = "SWC 2025 fabricated data")
+
+```
+
+## leaflet
+
+Leaflet allows you to create interactive html maps in R. Lots of the
+features (too many!) here is a brief intro!
+
+You need to use transform the spatial data with `st_transform()`.
+
+. . .
+
+```{r, echo = T, message = T}
+
+library(leaflet)
+
+
+leaf_lad_2022_buc_eng <- sf::st_transform(lad_2022_buc_eng, 4326)
+
+```
+
+. . .
+
+## paletes and popups
+
+```{r, echo = T, message = T}
+
+
+pal_age <- colorBin("YlOrRd", domain = c(min(lad_2022_buc_eng$median_teacher_age),max(lad_2022_buc_eng$median_teacher_age)),  pretty = FALSE, alpha = TRUE)
+
+
+age_popup <- paste0("<strong>LAD: </strong>",leaf_lad_2022_buc_eng$LAD22NM,
+                    "<br><strong>Teacher median age: </strong> ", leaf_lad_2022_buc_eng$median_teacher_age)
+
+
+```
+
+## leaflet map
+
+There are a number of leaflet features that this output uses
+
+. . .
+
+```{r, echo = T, message = T}
+
+
+leaflet(leaf_lad_2022_buc_eng) %>%
+  addPolygons(
+    stroke = FALSE, 
+    fillColor = ~pal_age(median_teacher_age),
+    fillOpacity = 0.8, smoothFactor = 0.5,
+    popup = age_popup,
+    group = "Age") %>%
+   addTiles(group = "OSM") %>%
+  addProviderTiles("CartoDB", group = "Carto") %>%
+  addLegend("bottomright", 
+            pal = pal_age,
+            values = ~median_teacher_age,
+            title = 'Median teacher age')
+```
+
+## maps with layers
+
+. . .
+
+```{r, echo = F, message = T}
+
+
+previous_map <- leaflet(leaf_lad_2022_buc_eng) %>%
+  addPolygons(
+    stroke = FALSE, 
+    fillColor = ~pal_age(median_teacher_age),
+    fillOpacity = 0.8, smoothFactor = 0.5,
+    popup = age_popup,
+    group = "Age") %>%
+  addTiles(group = "OSM") %>%
+  addProviderTiles("CartoDB", group = "Carto") %>%
+  addLegend("bottomright", 
+            pal = pal_age,
+            values = ~median_teacher_age,
+            title = 'Median teacher age',
+            group = "Age")
+
+pal_ptr <- colorBin("Greens", domain = c(min(leaf_lad_2022_buc_eng$pupil_teacher_ratio_fte),
+                                          max(leaf_lad_2022_buc_eng$pupil_teacher_ratio_fte)), pretty = FALSE, alpha = TRUE)
+
+ptr_popup <- paste0("<strong>LAD: </strong>",leaf_lad_2022_buc_eng$LAD22NM,
+                    "<br><strong>Percentage PTR: </strong> ", leaf_lad_2022_buc_eng$pupil_teacher_ratio_fte)
+
+```
+
+. . .
+
+```{r, echo = t, message = T}
+
+previous_map %>% 
+  addPolygons(
+  stroke = FALSE, 
+  fillColor = ~pal_ptr(pupil_teacher_ratio_fte),
+  fillOpacity = 0.8, smoothFactor = 0.5,
+  popup = ptr_popup,
+  group = "PTR") %>%
+  addLayersControl(
+    baseGroups = c("OSM", "Carto"),
+    overlayGroups = c("Age", "PTR"),
+    options = layersControlOptions(collapsed = FALSE))
+```
